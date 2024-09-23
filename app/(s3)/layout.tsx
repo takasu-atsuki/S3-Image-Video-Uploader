@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import './globals.css';
+import '../globals.css';
+import UploadHeader from '@/components/UploadHeader';
+import UploadFooter from '@/components/UploadFooter';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,8 +17,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ja">
-      <body className={inter.className}>{children}</body>
-    </html>
+    <div className="flex flex-col min-h-screen">
+      <UploadHeader />
+      <div className="flex-grow">{children}</div>
+      <UploadFooter />
+    </div>
   );
 }

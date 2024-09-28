@@ -1,16 +1,33 @@
 'use client';
 import { signIn } from 'next-auth/react';
-import React, { ReactNode } from 'react';
+import React from 'react';
+import type { ReactNode } from 'react';
 import { FaGithub, FaLine } from 'react-icons/fa';
+import { parseWithZod } from '@conform-to/zod';
+import { AuthSchema } from '@/app/lib/schema/authSchema';
+import { useFormState } from 'react-dom';
+import { useForm } from '@conform-to/react';
+import { login } from './server/login/action';
+
+interface ValidateFunctionType {
+  formData: FormData;
+}
 
 interface UserAuthFormProps {
   children: ReactNode;
 }
 
 const UserAuthForm = ({ children }: UserAuthFormProps) => {
-  const NormalLogin = async () => {
-    console.log('ログイン');
-  };
+  const [lastResult, action] = useFormState(login, undefined);
+
+  const [form, fields] = useForm({
+    lastResult,
+    onValidate({ formData }: ValidateFunctionType) {
+      return parseWithZod(formData, { schema: AuthSchema });
+    },
+    shouldValidate: 'onBlur',
+    shouldRevalidate: 'onInput',
+  });
 
   const LineLogin = async () => {
     signIn('line');
@@ -21,7 +38,13 @@ const UserAuthForm = ({ children }: UserAuthFormProps) => {
   };
 
   return (
-    <>
+    <form
+      className="grid gap-4"
+      id={form.id}
+      onSubmit={form.onSubmit}
+      action={action}
+      noValidate
+    >
       <div className="grid gap-8">
         <div className="grid gap-1">
           <label
@@ -31,66 +54,75 @@ const UserAuthForm = ({ children }: UserAuthFormProps) => {
             メールアドレス
           </label>
           <input
+            key={fields.email.key}
+            name={fields.email.name}
+            defaultValue={fields.email.initialValue}
             type="email"
             id="email"
             className="w-full md:text-lg text-md focus:outline-none p-2 border"
             placeholder="abcdefghijklmn...@example.com"
           />
-          <label
-            htmlFor="email"
-            slot="description"
-            className="md:text-xs text-[8px] tracking-tighter"
-          ></label>
+          {fields.email.errors?.map((error) => (
+            <div
+              key={error}
+              className="md:text-xs text-[8px] tracking-tighter text-red-500"
+            >
+              ・{fields.email.errors}
+            </div>
+          ))}
         </div>
         <div className="grid gap-1">
           <label
-            id="password"
+            htmlFor="password"
             className="md:text-md text-sm tracking-widest font-semibold"
           >
             パスワード
           </label>
           <input
+            key={fields.password.key}
+            name={fields.password.name}
+            defaultValue={fields.password.initialValue}
             type="password"
             id="password"
             className="w-full md:text-lg text-md focus:outline-none p-2 border"
             placeholder="**********"
           />
-          <label
-            htmlFor="password"
-            slot="description"
-            className="md:text-xs text-[8px] tracking-tighter"
-          >
-            ・パスワードは半角英数字(大文字・小文字含む)、記号の10文字以上を設定してください。
-          </label>
+          {fields.password.errors?.map((error) => (
+            <div
+              key={error}
+              className="md:text-xs text-[8px] tracking-tighter text-red-500"
+            >
+              ・{error}
+            </div>
+          ))}
         </div>
       </div>
       <div className="flex justify-between">
-        <button className="md:py-4 py-2 md:px-8 px-4 bg-gray-500 text-slate-50 rounded-lg hover:bg-gray-700 md:text-xl text-md md:w-[200px] w-[150px]">
-          キャンセル
-        </button>
         <button
-          onClick={NormalLogin}
-          className="md:py-4 py-2 md:px-8 px-4 bg-blue-500 text-slate-50 rounded-lg hover:bg-blue-700 md:text-xl text-md md:w-[200px] w-[150px]"
+          type="submit"
+          className="md:py-4 py-2 md:px-8 px-4 bg-blue-500 text-slate-50 rounded-lg hover:bg-blue-700 md:text-xl text-md w-full"
         >
           {children}
         </button>
       </div>
       <hr />
       <button
+        type="button"
         onClick={LineLogin}
-        className="w-full bg-slate-200 hover:bg-slate-400 rounded-lg p-4 flex items-center space-x-4"
+        className="w-full bg-slate-200 hover:bg-slate-400 rounded-lg p-4 flex items-center space-x-4 justify-center"
       >
         <FaLine className="text-green-500 md:w-6 md:h-6 w-4 h-4 mr-4" />
         LINE
       </button>
       <button
+        type="button"
         onClick={GithubLogin}
-        className="w-full bg-slate-200 hover:bg-slate-400 rounded-lg p-4 flex items-center space-x-4"
+        className="w-full bg-slate-200 hover:bg-slate-400 rounded-lg p-4 flex items-center space-x-4 justify-center"
       >
         <FaGithub className="text-slate-700 md:w-6 md:h-6 w-4 h-4 mr-4" />
         GitHub
       </button>
-    </>
+    </form>
   );
 };
 

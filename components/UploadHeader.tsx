@@ -28,7 +28,7 @@ const UploadHeader = async () => {
       <div className="hidden md:flex items-center justify-around space-x-8 mr-4 relative">
         <MainMenu />
         <div className="bg-slate-50 rounded-full w-16 h-16 flex items-center justify-center hover:bg-slate-200">
-          {session && session.user ? (
+          {session?.user ? (
             <Image
               src={session?.user.image}
               width={100}

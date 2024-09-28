@@ -2,8 +2,12 @@ import React from 'react';
 import { FaRegUser } from 'react-icons/fa6';
 import MainMenu from './MainMenu';
 import SmartMenu from './SmartMenu';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/lib/auth';
+import Image from 'next/image';
 
-const UploadHeader = () => {
+const UploadHeader = async () => {
+  const session = await getServerSession(authOptions);
   return (
     <header className="bg-gray-400 text-gray-800 flex justify-between items-center">
       <div className="flex justify-between px-4 py-1 items-center">
@@ -24,7 +28,17 @@ const UploadHeader = () => {
       <div className="hidden md:flex items-center justify-around space-x-8 mr-4 relative">
         <MainMenu />
         <div className="bg-slate-50 rounded-full w-16 h-16 flex items-center justify-center hover:bg-slate-200">
-          <FaRegUser className="text-gray-800 w-8 h-8" />
+          {session && session.user ? (
+            <Image
+              src={session?.user.image}
+              width={100}
+              height={100}
+              alt="ユーザの写真"
+              className="w-full h-full rounded-full"
+            />
+          ) : (
+            <FaRegUser className="text-gray-800 w-8 h-8" />
+          )}
         </div>
       </div>
     </header>
